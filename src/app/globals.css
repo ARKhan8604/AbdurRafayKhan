@@ -1,0 +1,232 @@
+@import "tailwindcss";
+
+/* Class-based dark mode driven by next-themes (attribute="class"). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/*  Design tokens — semantic CSS variables (light is :root default)   */
+/* ------------------------------------------------------------------ */
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --text: #0a0a0a;
+  --muted: #52525b;
+  --subtle: #71717a;
+  --border: rgba(9, 9, 11, 0.08);
+  --border-strong: rgba(9, 9, 11, 0.14);
+  --accent: #2563eb;
+  --accent-strong: #3b82f6;
+  --accent-fg: #ffffff;
+  --ring: #3b82f6;
+  --grid: rgba(9, 9, 11, 0.045);
+  --glow: rgba(59, 130, 246, 0.14);
+  --shadow-color: 220 40% 12%;
+  --particle: 20, 20, 24;
+  --particle-line: rgba(9, 9, 11, 0.12);
+}
+
+.dark {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface-2: #161618;
+  --text: #ffffff;
+  --muted: #a1a1aa;
+  --subtle: #71717a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --accent: #3b82f6;
+  --accent-strong: #60a5fa;
+  --accent-fg: #ffffff;
+  --ring: #3b82f6;
+  --grid: rgba(255, 255, 255, 0.04);
+  --glow: rgba(59, 130, 246, 0.18);
+  --shadow-color: 0 0% 0%;
+  --particle: 235, 235, 245;
+  --particle-line: rgba(255, 255, 255, 0.14);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Tailwind theme mapping (inline = resolve vars at usage / runtime) */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-fg: var(--accent-fg);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-4xl: 2rem;
+
+  --shadow-soft: 0 1px 2px hsl(var(--shadow-color) / 0.06),
+    0 8px 24px -12px hsl(var(--shadow-color) / 0.18);
+  --shadow-lift: 0 2px 6px hsl(var(--shadow-color) / 0.08),
+    0 20px 48px -20px hsl(var(--shadow-color) / 0.32);
+
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Base                                                              */
+/* ------------------------------------------------------------------ */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 26%, transparent);
+    color: var(--text);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Utilities                                                         */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+  .grid-texture {
+    background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+  .grid-texture-full {
+    background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+  .glass {
+    background: color-mix(in oklab, var(--surface) 70%, transparent);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+  }
+  .text-gradient {
+    background: linear-gradient(
+      180deg,
+      var(--text) 0%,
+      color-mix(in oklab, var(--text) 62%, var(--bg)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .accent-glow {
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 40%, transparent),
+      0 8px 40px -8px var(--glow);
+  }
+  .mask-fade-r {
+    -webkit-mask-image: linear-gradient(to right, #000 70%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 70%, transparent 100%);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Keyframes                                                         */
+/* ------------------------------------------------------------------ */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Custom scrollbar (dark-first, adapts) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--subtle);
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* View Transitions (Next.js App Router cross-page morph) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+}

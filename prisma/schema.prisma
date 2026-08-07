@@ -1,0 +1,204 @@
+// Prisma 7 schema — new `prisma-client` generator (query compiler + driver adapter).
+// Runtime client is instantiated with the pg adapter in src/lib/prisma.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Singleton row holding editable hero / about / profile / contact content.
+model SiteSettings {
+  id               String   @id @default("singleton")
+  heroTitle        String   @default("Abdur Rafay Khan")
+  heroSubtitle     String   @default("Computer Science Student • Full-Stack Developer • AI Builder")
+  heroTagline      String?
+  roles            String[] @default([])
+  aboutHeading     String?
+  aboutBody        String?
+  profileImageUrl  String?
+  resumeUrl        String?
+  location         String?
+  email            String?
+  availableForWork Boolean  @default(true)
+  /// Exact GitHub repo names to feature in the GitHub Activity section, in order.
+  /// Empty = show all public (non-fork) repos.
+  featuredRepos    String[] @default([])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  platform  String
+  url       String
+  icon      String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([order])
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  order    Int       @default(0)
+  projects Project[] @relation("ProjectCategories")
+
+  @@index([order])
+}
+
+enum ProjectStatus {
+  LIVE
+  IN_PROGRESS
+  COMPLETED
+  CONCEPT
+  ARCHIVED
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  description     String // short one-liner for cards
+  longDescription String?
+  // Case-study fields (optional — drive the detail page)
+  overview        String?
+  problem         String?
+  solution        String?
+  challenges      String?
+  outcome         String?
+  role            String?
+  year            String?
+  technologies    String[]      @default([])
+  githubUrl       String?
+  liveUrl         String?
+  coverImageUrl   String?
+  status          ProjectStatus @default(COMPLETED)
+  featured        Boolean       @default(false)
+  order           Int           @default(0)
+  categories      Category[]    @relation("ProjectCategories")
+  images          ProjectImage[]
+  team            TeamMember[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([featured, order])
+}
+
+model ProjectImage {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([projectId, order])
+}
+
+model TeamMember {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  role      String?
+  link      String?
+  order     Int     @default(0)
+
+  @@index([projectId, order])
+}
+
+model Experience {
+  id          String    @id @default(cuid())
+  role        String
+  company     String
+  location    String?
+  startDate   DateTime
+  endDate     DateTime?
+  current     Boolean   @default(false)
+  description String?
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([order])
+}
+
+model Education {
+  id          String    @id @default(cuid())
+  institution String
+  degree      String
+  field       String?
+  startDate   DateTime?
+  endDate     DateTime?
+  current     Boolean   @default(false)
+  description String?
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([order])
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  name      String
+  group     String // e.g. Languages, Frameworks, AI/ML, Tools
+  level     Int? // optional 0-100 proficiency
+  icon      String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([group, order])
+}
+
+// ------------------------------------------------------------------ //
+//  Auth.js (NextAuth v5) — Prisma adapter models                      //
+// ------------------------------------------------------------------ //
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
