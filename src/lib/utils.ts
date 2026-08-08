@@ -26,6 +26,18 @@ export function formatRange(start?: Date | string | null, end?: Date | string | 
   return from || to || "";
 }
 
+/**
+ * Ensure a user-entered URL has a protocol, so it's treated as absolute
+ * rather than a relative path on the current site. Leaves mailto:/tel:
+ * links and empty values untouched.
+ */
+export function normalizeUrl(url?: string | null): string | undefined {
+  const trimmed = url?.trim();
+  if (!trimmed) return trimmed || undefined;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed; // already has a scheme
+  return `https://${trimmed}`;
+}
+
 /** Extract a host label from a URL (e.g. "github.com"). */
 export function hostOf(url?: string | null) {
   if (!url) return "";

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { slugify } from "@/lib/utils";
+import { slugify, normalizeUrl } from "@/lib/utils";
 import type { ProjectStatus } from "@/types/content";
 
 async function requireAdmin() {
@@ -66,15 +66,16 @@ export async function updateResume(url: string | null) {
 // ------------------------------------------------------------------ //
 export async function upsertSocial(input: { id?: string; platform: string; url: string; icon?: string | null }) {
   await requireAdmin();
+  const url = normalizeUrl(input.url)!;
   if (input.id) {
     await prisma.socialLink.update({
       where: { id: input.id },
-      data: { platform: input.platform, url: input.url, icon: input.icon },
+      data: { platform: input.platform, url, icon: input.icon },
     });
   } else {
     const count = await prisma.socialLink.count();
     await prisma.socialLink.create({
-      data: { platform: input.platform, url: input.url, icon: input.icon, order: count },
+      data: { platform: input.platform, url, icon: input.icon, order: count },
     });
   }
   revalidatePublic();
@@ -149,8 +150,8 @@ export async function createProject(input: ProjectInput) {
       role: input.role,
       year: input.year,
       technologies: input.technologies ?? [],
-      githubUrl: input.githubUrl,
-      liveUrl: input.liveUrl,
+      githubUrl: normalizeUrl(input.githubUrl) ?? null,
+      liveUrl: normalizeUrl(input.liveUrl) ?? null,
       coverImageUrl: input.coverImageUrl,
       status: input.status ?? "COMPLETED",
       featured: input.featured ?? false,
@@ -180,8 +181,8 @@ export async function updateProject(id: string, input: ProjectInput) {
       role: input.role,
       year: input.year,
       technologies: input.technologies ?? [],
-      githubUrl: input.githubUrl,
-      liveUrl: input.liveUrl,
+      githubUrl: normalizeUrl(input.githubUrl) ?? null,
+      liveUrl: normalizeUrl(input.liveUrl) ?? null,
       coverImageUrl: input.coverImageUrl,
       status: input.status ?? "COMPLETED",
       featured: input.featured ?? false,
@@ -242,7 +243,13 @@ export async function setProjectTeam(
   await prisma.teamMember.deleteMany({ where: { projectId } });
   if (members.length) {
     await prisma.teamMember.createMany({
-      data: members.map((m, i) => ({ projectId, name: m.name, role: m.role, link: m.link, order: i })),
+      data: members.map((m, i) => ({
+        projectId,
+        name: m.name,
+        role: m.role,
+        link: normalizeUrl(m.link) ?? null,
+        order: i,
+      })),
     });
   }
   revalidatePublic();
