@@ -37,7 +37,7 @@ export function ProjectGallery({ images, title }: { images: ProjectImageView[]; 
               alt={img.alt ?? `${title} screenshot ${i + 1}`}
               fill
               sizes="(max-width: 640px) 100vw, 50vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
             />
           </button>
         ))}

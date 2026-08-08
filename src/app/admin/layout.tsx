@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ExternalLink, LogOut, AlertTriangle } from "lucide-react";
-import { auth, signOut } from "@/auth";
+import { signOut } from "@/auth";
+import { requireAdminPage } from "@/lib/require-admin";
 import { getDbStatus } from "@/server/admin-queries";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Admin",
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
+  // Fails closed and redirects to /login for anyone who isn't verifiably the
+  // site owner — independent of whatever the middleware already checked.
+  const session = await requireAdminPage();
   const dbReady = await getDbStatus();
 
   return (
@@ -31,7 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </span>
               <div className="leading-tight">
                 <p className="text-sm font-medium">Portfolio CMS</p>
-                <p className="text-xs text-[var(--subtle)]">{session.user.name ?? "Admin"}</p>
+                <p className="text-xs text-[var(--subtle)]">{session.user?.name ?? "Admin"}</p>
               </div>
             </Link>
 

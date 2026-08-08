@@ -18,6 +18,7 @@ import { GithubActivity } from "@/components/sections/github-activity";
 import { Contact } from "@/components/sections/contact";
 import { GithubSkeleton } from "@/components/sections/github-skeleton";
 import { SITE } from "@/lib/constants";
+import { safeJsonLd } from "@/lib/utils";
 
 export const revalidate = 3600;
 
@@ -47,7 +48,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <Hero settings={settings} socials={socials} categories={categories} />
       <About settings={settings} />

@@ -6,6 +6,8 @@ import { UploadCloud, X, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB — mirrors the server-side cap
+
 export function ImageUploader({
   value,
   onChange,
@@ -25,6 +27,11 @@ export function ImageUploader({
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast.error("File is too large — max 10 MB.");
+      return;
+    }
+
     setUploading(true);
     try {
       const signRes = await fetch("/api/cloudinary/sign", {
@@ -36,7 +43,8 @@ export function ImageUploader({
         const { error } = await signRes.json().catch(() => ({ error: "Sign failed" }));
         throw new Error(error || "Could not sign upload");
       }
-      const { signature, timestamp, apiKey, cloudName, folder: signedFolder } = await signRes.json();
+      const { signature, timestamp, apiKey, cloudName, folder: signedFolder, allowedFormats } =
+        await signRes.json();
 
       const form = new FormData();
       form.append("file", file);
@@ -44,13 +52,34 @@ export function ImageUploader({
       form.append("timestamp", String(timestamp));
       form.append("signature", signature);
       form.append("folder", signedFolder);
+      form.append("allowed_formats", allowedFormats);
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
         method: "POST",
         body: form,
       });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.error?.message || "Upload failed");
+      }
       const data = await res.json();
+
+      // Server-side size confirmation — Cloudinary's signed upload API has
+      // no enforced byte cap, so oversized files are deleted right here.
+      const confirmRes = await fetch("/api/cloudinary/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          publicId: data.public_id,
+          resourceType: data.resource_type,
+          bytes: data.bytes,
+        }),
+      });
+      if (!confirmRes.ok) {
+        const { error } = await confirmRes.json().catch(() => ({ error: "Upload rejected" }));
+        throw new Error(error || "Upload rejected");
+      }
+
       onChange(data.secure_url as string);
       toast.success("Uploaded");
     } catch (e) {

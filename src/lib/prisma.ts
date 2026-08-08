@@ -17,7 +17,11 @@ const globalForPrisma = globalThis as unknown as {
 
 function createClient() {
   const connectionString = process.env.DATABASE_URL || "postgresql://placeholder:placeholder@localhost:5432/placeholder";
-  const adapter = new PrismaPg({ connectionString });
+  // Small pool per serverless instance: each invocation mostly needs one
+  // connection at a time, and Neon's pooled (pgbouncer) endpoint already
+  // multiplexes across instances. A large per-instance pool just risks
+  // exhausting Neon's connection limit under a traffic spike.
+  const adapter = new PrismaPg({ connectionString, max: 5 });
   return new PrismaClient({ adapter });
 }
 

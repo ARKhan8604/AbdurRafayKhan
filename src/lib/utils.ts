@@ -57,6 +57,17 @@ export function hueFromString(input: string) {
   return Math.abs(hash) % 360;
 }
 
+/**
+ * Serialize a value for embedding in a `<script type="application/ld+json">`
+ * tag. JSON.stringify alone is not safe here: a field containing the
+ * literal text `</script>` would close the tag early and let anything
+ * after it run as markup/script. Escaping `<` as a unicode sequence
+ * prevents that while leaving the JSON semantically identical.
+ */
+export function safeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 /** Clamp a number between min and max. */
 export function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);

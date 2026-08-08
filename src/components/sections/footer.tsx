@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
 import type { SocialView } from "@/types/content";
 import { Container } from "@/components/ui/container";
@@ -7,12 +10,16 @@ import { SocialIcon } from "@/components/ui/social-icon";
 
 export function Footer({ socials }: { socials: SocialView[] }) {
   const year = new Date().getFullYear();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const sectionHref = (id: string) => (isHome ? `#${id}` : `/#${id}`);
+
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface)]/40">
       <Container className="py-14">
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm">
-            <Link href="#top" className="flex items-center gap-2.5">
+            <Link href={sectionHref("top")} className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] font-mono text-sm font-semibold">
                 AR
               </span>
@@ -29,7 +36,7 @@ export function Footer({ socials }: { socials: SocialView[] }) {
               {SECTIONS.slice(0, 5).map((s) => (
                 <Link
                   key={s.id}
-                  href={`#${s.id}`}
+                  href={sectionHref(s.id)}
                   className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--text)]"
                 >
                   {s.label}
@@ -58,13 +65,13 @@ export function Footer({ socials }: { socials: SocialView[] }) {
           <p className="text-xs text-[var(--subtle)]">
             © {year} {SITE.name}. Built with Next.js, Tailwind & Prisma.
           </p>
-          <a
-            href="#top"
+          <Link
+            href={sectionHref("top")}
             className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-xs text-[var(--muted)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text)]"
           >
             Back to top
             <ArrowUp className="h-3.5 w-3.5" />
-          </a>
+          </Link>
         </div>
       </Container>
     </footer>

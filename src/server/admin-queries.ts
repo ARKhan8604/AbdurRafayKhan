@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-admin";
 
 /** True when the database is reachable — used to show a setup banner in admin. */
 export async function getDbStatus(): Promise<boolean> {
@@ -17,7 +18,13 @@ const projectInclude = {
   team: { orderBy: { order: "asc" as const } },
 };
 
+// Every getter below independently re-verifies the caller is the admin.
+// The admin layout already gates the route tree, but these functions are
+// exported and could be imported from anywhere in the future — never rely
+// solely on "this is rendered inside a protected layout".
+
 export async function adminGetSettings() {
+  await requireAdmin();
   try {
     return await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
   } catch {
@@ -26,6 +33,7 @@ export async function adminGetSettings() {
 }
 
 export async function adminGetSocials() {
+  await requireAdmin();
   try {
     return await prisma.socialLink.findMany({ orderBy: { order: "asc" } });
   } catch {
@@ -34,6 +42,7 @@ export async function adminGetSocials() {
 }
 
 export async function adminGetCategories() {
+  await requireAdmin();
   try {
     return await prisma.category.findMany({ orderBy: { order: "asc" } });
   } catch {
@@ -42,14 +51,17 @@ export async function adminGetCategories() {
 }
 
 export async function adminGetProjects() {
+  await requireAdmin();
   try {
-    return await prisma.project.findMany({ orderBy: { order: "asc" }, include: projectInclude });
+    return await prisma.project.findMany({ orderBy: { order: "asc" }, include: projectInclude, take: 500 });
   } catch {
     return [];
   }
 }
 
 export async function adminGetProject(id: string) {
+  await requireAdmin();
+  if (typeof id !== "string" || !id || id.length > 64) return null;
   try {
     return await prisma.project.findUnique({ where: { id }, include: projectInclude });
   } catch {
@@ -58,30 +70,34 @@ export async function adminGetProject(id: string) {
 }
 
 export async function adminGetExperience() {
+  await requireAdmin();
   try {
-    return await prisma.experience.findMany({ orderBy: { order: "asc" } });
+    return await prisma.experience.findMany({ orderBy: { order: "asc" }, take: 500 });
   } catch {
     return [];
   }
 }
 
 export async function adminGetEducation() {
+  await requireAdmin();
   try {
-    return await prisma.education.findMany({ orderBy: { order: "asc" } });
+    return await prisma.education.findMany({ orderBy: { order: "asc" }, take: 500 });
   } catch {
     return [];
   }
 }
 
 export async function adminGetSkills() {
+  await requireAdmin();
   try {
-    return await prisma.skill.findMany({ orderBy: { order: "asc" } });
+    return await prisma.skill.findMany({ orderBy: { order: "asc" }, take: 1000 });
   } catch {
     return [];
   }
 }
 
 export async function adminCounts() {
+  await requireAdmin();
   try {
     const [projects, skills, experience, education, categories, socials] = await Promise.all([
       prisma.project.count(),

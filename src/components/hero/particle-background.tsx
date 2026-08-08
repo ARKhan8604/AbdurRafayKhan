@@ -72,9 +72,21 @@ export function ParticleBackground({ className }: { className?: string }) {
     }
 
     const maxDist = 130;
+    // Target ~60fps (16.667ms/frame). Movement is scaled by how much real
+    // time actually elapsed since the last frame, so the drift speed stays
+    // constant regardless of the browser's actual frame rate — without
+    // this, particles visibly speed up or slow down as frame rate varies.
+    const TARGET_FRAME_MS = 1000 / 60;
+    let lastTime = 0;
 
-    function frame() {
+    function frame(time: number) {
       if (!running) return;
+      if (!lastTime) lastTime = time;
+      // Clamp so a long pause (tab backgrounded, slow device) doesn't cause a huge jump.
+      const dt = Math.min(time - lastTime, TARGET_FRAME_MS * 4);
+      lastTime = time;
+      const speed = dt / TARGET_FRAME_MS;
+
       ctx!.clearRect(0, 0, width, height);
 
       // pointer glow
@@ -88,8 +100,8 @@ export function ParticleBackground({ className }: { className?: string }) {
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx * speed;
+        p.y += p.vy * speed;
 
         // pointer repel
         if (pointer.active) {
@@ -99,8 +111,8 @@ export function ParticleBackground({ className }: { className?: string }) {
           if (d2 < 120 * 120 && d2 > 0.01) {
             const d = Math.sqrt(d2);
             const force = (120 - d) / 120;
-            p.x += (dx / d) * force * 1.4;
-            p.y += (dy / d) * force * 1.4;
+            p.x += (dx / d) * force * 1.4 * speed;
+            p.y += (dy / d) * force * 1.4 * speed;
           }
         }
 
@@ -166,7 +178,7 @@ export function ParticleBackground({ className }: { className?: string }) {
     }
 
     resize();
-    frame();
+    raf = requestAnimationFrame(frame);
 
     const io = new IntersectionObserver(
       ([entry]) => {

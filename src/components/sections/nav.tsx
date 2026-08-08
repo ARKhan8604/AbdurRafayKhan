@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Command, Menu, X, FileText } from "lucide-react";
 import { SECTIONS, SITE } from "@/lib/constants";
@@ -40,6 +41,12 @@ export function Nav({ resumeUrl }: { resumeUrl?: string | null }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const active = useScrollSpy(SECTIONS.map((s) => s.id));
+  const pathname = usePathname();
+  // Section anchors (#about, #top, ...) only exist in the home page's DOM.
+  // From any other route, prefix with "/" so Next.js navigates home first,
+  // then scrolls to the section — a bare "#about" href just no-ops there.
+  const isHome = pathname === "/";
+  const sectionHref = (id: string) => (isHome ? `#${id}` : `/#${id}`);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -64,7 +71,7 @@ export function Nav({ resumeUrl }: { resumeUrl?: string | null }) {
     >
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-6 lg:px-8">
         <Link
-          href="#top"
+          href={sectionHref("top")}
           className="group flex items-center gap-2.5"
           aria-label={SITE.name}
           onClick={() => setMobileOpen(false)}
@@ -80,7 +87,7 @@ export function Nav({ resumeUrl }: { resumeUrl?: string | null }) {
           {SECTIONS.map((s) => (
             <li key={s.id}>
               <Link
-                href={`#${s.id}`}
+                href={sectionHref(s.id)}
                 className={cn(
                   "relative rounded-full px-3.5 py-1.5 text-sm transition-colors",
                   active === s.id ? "text-[var(--text)]" : "text-[var(--muted)] hover:text-[var(--text)]"
@@ -153,7 +160,7 @@ export function Nav({ resumeUrl }: { resumeUrl?: string | null }) {
               {SECTIONS.map((s) => (
                 <li key={s.id}>
                   <Link
-                    href={`#${s.id}`}
+                    href={sectionHref(s.id)}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
                       "block rounded-xl px-4 py-3 text-base transition-colors",

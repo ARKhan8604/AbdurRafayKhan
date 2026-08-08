@@ -21,6 +21,7 @@ import { ProjectCover } from "@/components/projects/project-cover";
 import { ProjectGallery } from "@/components/projects/project-gallery";
 import { ProjectCTA } from "@/components/projects/project-cta";
 import { GithubIcon } from "@/components/ui/brand-icons";
+import { safeJsonLd } from "@/lib/utils";
 import type { ProjectView } from "@/types/content";
 
 export const revalidate = 3600;
@@ -81,7 +82,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
 
   return (
     <article className="pb-24 pt-28">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       <Container>
         <Link
           href="/projects"

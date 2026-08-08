@@ -144,7 +144,7 @@ export const getSettings = cache(async (): Promise<SettingsView> => {
 
 export const getSocials = cache(async (): Promise<SocialView[]> => {
   try {
-    const rows = await prisma.socialLink.findMany({ orderBy: { order: "asc" } });
+    const rows = await prisma.socialLink.findMany({ orderBy: { order: "asc" }, take: 50 });
     if (!rows.length) return SOCIALS.map((s, i) => ({ id: String(i), ...s }));
     return rows;
   } catch {
@@ -155,7 +155,7 @@ export const getSocials = cache(async (): Promise<SocialView[]> => {
 
 export const getCategories = cache(async (): Promise<CategoryView[]> => {
   try {
-    const rows = await prisma.category.findMany({ orderBy: { order: "asc" } });
+    const rows = await prisma.category.findMany({ orderBy: { order: "asc" }, take: 100 });
     if (!rows.length) return fallbackCategories();
     return rows;
   } catch {
@@ -169,6 +169,7 @@ export const getProjects = cache(async (): Promise<ProjectView[]> => {
     const rows = await prisma.project.findMany({
       orderBy: { order: "asc" },
       include: projectInclude,
+      take: 500,
     });
     if (!rows.length) return fallbackProjects();
     return rows.map(mapProject);
@@ -196,7 +197,7 @@ export const getProjectBySlug = cache(async (slug: string): Promise<ProjectView 
 
 export const getSkills = cache(async (): Promise<SkillView[]> => {
   try {
-    const rows = await prisma.skill.findMany({ orderBy: { order: "asc" } });
+    const rows = await prisma.skill.findMany({ orderBy: { order: "asc" }, take: 1000 });
     if (!rows.length) throw new Error("empty");
     return rows;
   } catch {
@@ -207,7 +208,7 @@ export const getSkills = cache(async (): Promise<SkillView[]> => {
 
 export const getExperience = cache(async (): Promise<ExperienceView[]> => {
   try {
-    const rows = await prisma.experience.findMany({ orderBy: { order: "asc" } });
+    const rows = await prisma.experience.findMany({ orderBy: { order: "asc" }, take: 200 });
     if (!rows.length) throw new Error("empty");
     return rows;
   } catch {
@@ -218,7 +219,7 @@ export const getExperience = cache(async (): Promise<ExperienceView[]> => {
 
 export const getEducation = cache(async (): Promise<EducationView[]> => {
   try {
-    const rows = await prisma.education.findMany({ orderBy: { order: "asc" } });
+    const rows = await prisma.education.findMany({ orderBy: { order: "asc" }, take: 200 });
     if (!rows.length) throw new Error("empty");
     return rows;
   } catch {
