@@ -53,7 +53,15 @@ function applySecurityHeaders(response: NextResponse) {
 
 const { auth } = NextAuth(authConfig);
 
-export default async function middleware(req: NextRequest) {
+// Must use Auth.js's documented middleware-wrapper form — `auth((req) => ...)` —
+// not `await auth(req)`. authConfig defines a `callbacks.authorized`, and
+// calling `auth(req)` with a single request argument (no wrapper function)
+// makes Auth.js evaluate that callback internally and return a `Response`
+// instead of a `Session`, which broke the `.user` check below and caused
+// every /admin request to be treated as unauthenticated — an infinite
+// redirect loop with /login (whose Node-runtime auth() saw the session fine).
+// The wrapper form populates `req.auth` correctly instead.
+export default auth(async (req) => {
   const isAdmin = req.nextUrl.pathname.startsWith("/admin");
 
   if (isAdmin) {
@@ -69,17 +77,14 @@ export default async function middleware(req: NextRequest) {
       );
     }
 
-    // Delegate to the Auth.js edge guard for the actual identity check
-    // (re-verifies the session's stored GitHub id, not just "a session exists").
-    const authResult = await auth(req as never);
-    const isAuthed = Boolean((authResult as { user?: unknown } | null)?.user);
+    const isAuthed = Boolean(req.auth?.user);
     if (!isAuthed) {
       return applySecurityHeaders(NextResponse.redirect(new URL("/login", req.url)));
     }
   }
 
   return applySecurityHeaders(NextResponse.next());
-}
+});
 
 export const config = {
   matcher: [
