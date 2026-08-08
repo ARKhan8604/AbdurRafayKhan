@@ -64,10 +64,10 @@ export function Section({
   children?: React.ReactNode;
 }) {
   return (
-    <section id={id} className={cn("scroll-mt-24 py-20 sm:py-28", className)}>
+    <section id={id} className={cn("scroll-mt-24 py-14 sm:py-20 md:py-28", className)}>
       <Container className={containerClassName}>
         {title && (
-          <div className={cn("mb-12 sm:mb-16", headerClassName)}>
+          <div className={cn("mb-8 sm:mb-12 md:mb-16", headerClassName)}>
             <SectionHeading eyebrow={eyebrow} title={title} description={description} align={align} />
           </div>
         )}
